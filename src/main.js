@@ -1,4 +1,3 @@
-import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
@@ -7,12 +6,13 @@ import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 
 const canvas = document.querySelector("canvas.webgl");
 const scene = new THREE.Scene();
+const gui = new GUI();
 
 const material = new THREE.MeshPhysicalMaterial();
 
 const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 64, 64), material);
 
-material.metalness = 1;
+material.metalness = 0.5;
 material.roughness = 1;
 material.clearcoat = 1;
 material.clearcoatRoughness = 0;
@@ -24,16 +24,20 @@ const pointLight = new THREE.PointLight(0xffffff, 30);
 pointLight.position.x = 2;
 pointLight.position.y = 3;
 pointLight.position.z = 4;
-scene.add(pointLight);
 
+const lightFolder = gui.addFolder("Light");
+lightFolder.add(pointLight.position, "x").min(-3).max(3).step(0.01);
+lightFolder.add(pointLight.position, "y").min(-3).max(3).step(0.01);
+lightFolder.add(pointLight.position, "z").min(-3).max(3).step(0.01);
+lightFolder.add(ambientLight, "intensity").min(0).max(3).step(0.01);
+
+scene.add(pointLight);
 scene.add(sphere);
 
 const sizes = {
   width: window.innerWidth,
   height: window.innerHeight,
 };
-
-const gui = new GUI();
 
 window.addEventListener("resize", () => {
   sizes.width = window.innerWidth;
@@ -64,7 +68,12 @@ const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
 });
 
-gui.add(material, "metalness").min(0).max(1).step(0.0001);
+const materialFolder = gui.addFolder("Material");
+
+materialFolder.add(material, "metalness").min(0).max(1).step(0.0001);
+materialFolder.add(material, "roughness").min(0).max(1).step(0.0001);
+materialFolder.add(material, "clearcoat").min(0).max(1).step(0.0001);
+materialFolder.add(material, "clearcoatRoughness").min(0).max(1).step(0.0001);
 
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
