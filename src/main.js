@@ -1,3 +1,4 @@
+import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
@@ -7,10 +8,32 @@ import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 const canvas = document.querySelector("canvas.webgl");
 const scene = new THREE.Scene();
 
+const material = new THREE.MeshPhysicalMaterial();
+
+const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 64, 64), material);
+
+material.metalness = 1;
+material.roughness = 1;
+material.clearcoat = 1;
+material.clearcoatRoughness = 0;
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+scene.add(ambientLight);
+
+const pointLight = new THREE.PointLight(0xffffff, 30);
+pointLight.position.x = 2;
+pointLight.position.y = 3;
+pointLight.position.z = 4;
+scene.add(pointLight);
+
+scene.add(sphere);
+
 const sizes = {
   width: window.innerWidth,
   height: window.innerHeight,
 };
+
+const gui = new GUI();
 
 window.addEventListener("resize", () => {
   sizes.width = window.innerWidth;
@@ -40,6 +63,9 @@ controls.enableDamping = true;
 const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
 });
+
+gui.add(material, "metalness").min(0).max(1).step(0.0001);
+
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
