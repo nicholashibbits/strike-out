@@ -5,14 +5,40 @@ import { addControls } from "./controls";
 const canvas = document.querySelector("canvas.webgl");
 const scene = new THREE.Scene();
 
-const material = new THREE.MeshPhysicalMaterial();
+const textureLoader = new THREE.TextureLoader();
+const texturePath = "/textures/Marble_Red_004_";
 
-const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 64, 64), material);
+const colorMap = textureLoader.load(texturePath + "basecolor.jpg");
+const aoMap = textureLoader.load(texturePath + "ambientOcclusion.jpg");
+const heightMap = textureLoader.load(texturePath + "height.png");
+const normalMap = textureLoader.load(texturePath + "normal.jpg");
+const roughnessMap = textureLoader.load(texturePath + "roughness.jpg");
 
-material.metalness = 0.5;
+colorMap.colorSpace = THREE.SRGBColorSpace;
+
+for (const t of [colorMap, aoMap, heightMap, normalMap, roughnessMap]) {
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(2, 2);
+}
+
+const material = new THREE.MeshPhysicalMaterial({
+  map: colorMap,
+  aoMap,
+  aoMapIntensity: 1,
+  normalMap,
+  roughnessMap,
+  displacementMap: heightMap,
+  displacementScale: 0.02,
+});
+
+material.metalness = 0;
 material.roughness = 1;
 material.clearcoat = 1;
 material.clearcoatRoughness = 0;
+
+const geometry = new THREE.SphereGeometry(0.5, 128, 128);
+geometry.setAttribute("uv2", geometry.attributes.uv);
+const sphere = new THREE.Mesh(geometry, material);
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 scene.add(ambientLight);
@@ -57,10 +83,18 @@ controls.enableDamping = true;
 
 const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
+  antialias: true,
 });
 
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1;
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+for (const t of [colorMap, aoMap, heightMap, normalMap, roughnessMap]) {
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+}
 
 addControls({ pointLight, ambientLight, material });
 
